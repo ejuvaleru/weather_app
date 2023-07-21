@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:weather_app/features/forecast/domain/domain.dart';
 import 'package:weather_app/features/forecast/infrastructure/infrastructure.dart';
 
@@ -10,7 +11,7 @@ class WeatherApiDatasourceImpl implements WeatherDatasource {
         baseUrl: 'https://api.weatherapi.com/v1/',
         queryParameters: {
           'aqi': 'no',
-          'key': 'API_KEY',
+          'key': dotenv.env['WEATHER_API_KEY'],
           'days': '1',
           'alerts': 'no',
           'lang': 'no'
