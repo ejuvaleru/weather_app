@@ -4,9 +4,9 @@ import 'package:weather_app/config/config.dart';
 
 class AppTheme {
 
-  final _fontFamilySmall = GoogleFonts.jost(color: const Color(primaryFontColor));
-  final _fontFamilyMedium = GoogleFonts.jost(color: const Color(primaryFontColor));
-  final _fontFamilyLarge = GoogleFonts.jost(color: const Color(primaryFontColor));
+  final _fontFamilySmall = GoogleFonts.poppins(color: const Color(primaryFontColor));
+  final _fontFamilyMedium = GoogleFonts.poppins(color: const Color(primaryFontColor));
+  final _fontFamilyLarge = GoogleFonts.poppins(color: const Color(primaryFontColor));
 
   ThemeData getTheme() => ThemeData(
     useMaterial3: true,
