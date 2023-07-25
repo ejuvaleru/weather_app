@@ -5,6 +5,7 @@ class AppRouter {
   final router = GoRouter(
     routes: [
       GoRoute(path: '/', builder: (context, state) => const ForecastScreen()),
+      GoRoute(path: '/preferences', builder: (context, state) => const PreferencesScreen()),
     ],
     initialLocation: '/',
   );

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'package:animate_do/animate_do.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:weather_app/config/config.dart';
 import 'package:weather_app/features/forecast/domain/domain.dart';
 import 'package:weather_app/features/forecast/presentation/presentation.dart';
+import 'package:weather_app/features/preferences/preferences.dart';
 
 class ForecastScreen extends ConsumerStatefulWidget {
   const ForecastScreen({super.key});
@@ -18,6 +19,7 @@ class ForecastScreenState extends ConsumerState<ForecastScreen> {
   @override
   Widget build(BuildContext context) {
     final currentWeather = ref.watch(currentWeatherProvider).weather;
+    final preferences = ref.watch(preferencesProvider);
     final isLoading = ref.watch(currentWeatherProvider).isLoading;
 
     return Scaffold(
@@ -36,8 +38,14 @@ class ForecastScreenState extends ConsumerState<ForecastScreen> {
               },
               child: CustomScrollView(
                 slivers: [
-                  _CustomSliverAppBar(currentWeather: currentWeather!),
-                  _CustomSliverView(currentWeather: currentWeather),
+                  _CustomSliverAppBar(
+                    currentWeather: currentWeather!,
+                    preferences: preferences,
+                  ),
+                  _CustomSliverView(
+                    currentWeather: currentWeather,
+                    preferences: preferences,
+                  ),
                 ],
               ),
             ),
@@ -47,10 +55,10 @@ class ForecastScreenState extends ConsumerState<ForecastScreen> {
 
 class _CustomSliverView extends StatelessWidget {
   final CurrentWeather currentWeather;
+  final PreferencesState preferences;
 
-  const _CustomSliverView({
-    required this.currentWeather,
-  });
+  const _CustomSliverView(
+      {required this.currentWeather, required this.preferences});
 
   @override
   Widget build(BuildContext context) {
@@ -63,42 +71,23 @@ class _CustomSliverView extends StatelessWidget {
               children: [
                 _HourlyForecastList(
                   currentWeather: currentWeather,
+                  preferences: preferences,
                 ),
                 const SizedBox(height: 24),
-                _WeatherDetailsSection(currentWeather: currentWeather),
+                _WeatherDetailsSection(
+                  currentWeather: currentWeather,
+                  preferences: preferences,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(currentWeather.astro.sunrise),
-                    const SizedBox(width: 24),
-                    SleekCircularSlider(
-                      appearance: CircularSliderAppearance(
-                        customColors: CustomSliderColors(
-                          progressBarColors: [
-                            // const Color.fromARGB(255, 23, 79, 139),
-                            const Color(scaffoldBgColor),
-                            const Color(iconsColor),
-                          ],
-                          trackColor: const Color(secondaryFontColor),
-                          dotColor: Colors.transparent
-                        ),
-                      ),
-                      min: 0,
-                      max: 24,
-                      initialValue: double.parse(currentWeather.lastUpdateHour.split(':').first),
-                      onChange: null,
-                      innerWidget: (hour) => Center(
-                        child: Text(
-                          hour.round().toString(),
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Text(currentWeather.astro.sunset),
+                    Text('☀️ ${currentWeather.astro.sunrise}'),
+                    const SizedBox(width: 48),
+                    Text('${currentWeather.astro.sunset} 🌕'),
                   ],
-                )
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -110,8 +99,11 @@ class _CustomSliverView extends StatelessWidget {
 
 class _HourlyForecastList extends StatefulWidget {
   final CurrentWeather currentWeather;
+  final PreferencesState preferences;
+
   const _HourlyForecastList({
     required this.currentWeather,
+    required this.preferences,
   });
 
   @override
@@ -125,8 +117,9 @@ class _HourlyForecastListState extends State<_HourlyForecastList> {
   void initState() {
     super.initState();
     _hourlyForecastScrollController = ScrollController(
-        initialScrollOffset:
-            getInitialOffsetHourlyList(widget.currentWeather.lastUpdateHour));
+      initialScrollOffset:
+          getInitialOffsetHourlyList(widget.currentWeather.lastUpdateHour),
+    );
   }
 
   @override
@@ -150,7 +143,9 @@ class _HourlyForecastListState extends State<_HourlyForecastList> {
           return HourlyForecastItem(
             hour: weatherByHour.hour,
             imageUrl: weatherByHour.imageCode,
-            temperature: weatherByHour.tempC,
+            temperature: widget.preferences.isUsingCelcius
+                ? weatherByHour.tempC
+                : weatherByHour.tempF,
           );
         },
       ),
@@ -160,10 +155,10 @@ class _HourlyForecastListState extends State<_HourlyForecastList> {
 
 class _WeatherDetailsSection extends StatelessWidget {
   final CurrentWeather currentWeather;
+  final PreferencesState preferences;
 
-  const _WeatherDetailsSection({
-    required this.currentWeather,
-  });
+  const _WeatherDetailsSection(
+      {required this.currentWeather, required this.preferences});
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +170,8 @@ class _WeatherDetailsSection extends StatelessWidget {
             // WeatherInfoItem
             WeatherInfoItem(
               label: 'Feel like',
-              info: '${currentWeather.feelslikeC}°',
+              info:
+                  '${preferences.isUsingCelcius ? currentWeather.feelslikeC : currentWeather.feelslikeF}°',
               icon: Icons.thermostat_outlined,
             ),
             WeatherInfoItem(
@@ -196,7 +192,7 @@ class _WeatherDetailsSection extends StatelessWidget {
           children: [
             WeatherInfoItem(
               label: 'Wind',
-              info: '${currentWeather.windKph} km/h',
+              info: preferences.isUsingKm ? '${currentWeather.windKph} km/h' : '${currentWeather.windMph} mi/h',
               icon: Icons.air_outlined,
             ),
             WeatherInfoItem(
@@ -206,7 +202,7 @@ class _WeatherDetailsSection extends StatelessWidget {
             ),
             WeatherInfoItem(
               label: 'Visibility',
-              info: '${currentWeather.visibilityKm} km/h',
+              info: preferences.isUsingKm ? '${currentWeather.visibilityKm} km' : '${currentWeather.visibilityMiles} mi',
               icon: Icons.air_outlined,
             ),
           ],
@@ -218,7 +214,12 @@ class _WeatherDetailsSection extends StatelessWidget {
 
 class _CustomSliverAppBar extends StatelessWidget {
   final CurrentWeather currentWeather;
-  const _CustomSliverAppBar({required this.currentWeather});
+  final PreferencesState preferences;
+
+  const _CustomSliverAppBar({
+    required this.currentWeather,
+    required this.preferences,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -256,10 +257,10 @@ class _CustomSliverAppBar extends StatelessWidget {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 24),
-            child: GestureDetector(
-              onTap: () {},
-              child: const Icon(Icons.window_rounded),
+            padding: const EdgeInsets.only(right: 10),
+            child: IconButton(
+              onPressed: () => context.push('/preferences'),
+              icon: const Icon(Icons.window_rounded),
             ),
           ),
         ],
@@ -283,7 +284,7 @@ class _CustomSliverAppBar extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${currentWeather.tempC}°',
+                  '${preferences.isUsingCelcius ? currentWeather.tempC : currentWeather.tempF}°',
                   style: const TextStyle(
                     fontSize: 110,
                     fontWeight: FontWeight.bold,
