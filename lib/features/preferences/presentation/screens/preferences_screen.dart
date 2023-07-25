@@ -16,7 +16,7 @@ class PreferencesScreen extends ConsumerWidget {
       body: ListView(
         children: [
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Text(
               'UNITS OF MESURE',
               // style: TextStyle(fontSize: ),
@@ -48,7 +48,7 @@ class PreferencesScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Text(
               'LOCATION SERVICE',
               // style: TextStyle(fontSize: ),
@@ -68,7 +68,7 @@ class PreferencesScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Text(
               'LANGUAGE OPTIONS',
               // style: TextStyle(fontSize: ),
