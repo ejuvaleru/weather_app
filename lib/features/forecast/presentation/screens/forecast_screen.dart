@@ -192,7 +192,9 @@ class _WeatherDetailsSection extends StatelessWidget {
           children: [
             WeatherInfoItem(
               label: 'Wind',
-              info: preferences.isUsingKm ? '${currentWeather.windKph} km/h' : '${currentWeather.windMph} mi/h',
+              info: preferences.isUsingKm
+                  ? '${currentWeather.windKph} km/h'
+                  : '${currentWeather.windMph} mi/h',
               icon: Icons.air_outlined,
             ),
             WeatherInfoItem(
@@ -202,7 +204,9 @@ class _WeatherDetailsSection extends StatelessWidget {
             ),
             WeatherInfoItem(
               label: 'Visibility',
-              info: preferences.isUsingKm ? '${currentWeather.visibilityKm} km' : '${currentWeather.visibilityMiles} mi',
+              info: preferences.isUsingKm
+                  ? '${currentWeather.visibilityKm} km'
+                  : '${currentWeather.visibilityMiles} mi',
               icon: Icons.air_outlined,
             ),
           ],
@@ -242,9 +246,13 @@ class _CustomSliverAppBar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  GestureDetector(
+                  InkWell(
+                    borderRadius: BorderRadius.circular(50),
                     onTap: () {},
-                    child: const Icon(Icons.location_on_outlined),
+                    child: Container(
+                      padding: const EdgeInsets.all(0),
+                      child: const Icon(Icons.location_on_outlined),
+                    ),
                   ),
                   Text(
                     '${currentWeather.locationName.toUpperCase()}, ${currentWeather.locationCountry}',
