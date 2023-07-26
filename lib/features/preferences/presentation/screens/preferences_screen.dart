@@ -2,11 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:weather_app/features/preferences/preferences.dart';
 
-class PreferencesScreen extends ConsumerWidget {
+class PreferencesScreen extends ConsumerStatefulWidget {
   const PreferencesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  PreferencesScreenState createState() => PreferencesScreenState();
+}
+
+class PreferencesScreenState extends ConsumerState<PreferencesScreen> with WidgetsBindingObserver {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+   if(state == AppLifecycleState.resumed) {
+    ref.read(preferencesProvider.notifier).checkLocationPermissionStatus();
+   }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final preferences = ref.watch(preferencesProvider);
 
     return Scaffold(
@@ -59,9 +85,9 @@ class PreferencesScreen extends ConsumerWidget {
               children: [
                 SwitchListTile.adaptive(
                   title: const Text('Enable location'),
-                  subtitle: const Text('Provide access to device GPS'),
-                  value: preferences.isLocationServiceGranted,
-                  onChanged: (value) => ref.read(preferencesProvider.notifier).toggleLocationService(),
+                  subtitle: const Text('Provide access to device Location'),
+                  value: preferences.isLocationPermissionGranted,
+                  onChanged: (value) => ref.read(preferencesProvider.notifier).requestLocationPermission(),
                 ),
               ],
             ),
