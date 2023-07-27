@@ -14,6 +14,7 @@ class PreferencesScreenState extends ConsumerState<PreferencesScreen> with Widge
   @override
   void initState() {
     super.initState();
+    ref.read(preferencesProvider.notifier).checkLocationPermissionStatus();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -87,7 +88,9 @@ class PreferencesScreenState extends ConsumerState<PreferencesScreen> with Widge
                   title: const Text('Enable location'),
                   subtitle: const Text('Provide access to device Location'),
                   value: preferences.isLocationPermissionGranted,
-                  onChanged: (value) => ref.read(preferencesProvider.notifier).requestLocationPermission(),
+                  onChanged: (value) {
+                    ref.read(preferencesProvider.notifier).requestLocationPermission();
+                  }
                 ),
               ],
             ),

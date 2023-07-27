@@ -8,7 +8,7 @@ class WeatherApiRepositoryImpl implements WeatherRepository {
   WeatherApiRepositoryImpl({WeatherDatasource? datasource}) : _datasource = datasource ?? WeatherApiDatasourceImpl();
 
   @override
-  Future<CurrentWeather> getCurrentWeather({String cityName = 'Cancun'}) async {
-    return _datasource.getCurrentWeather(cityName: cityName);
+  Future<CurrentWeather> getCurrentWeather({String cityNameOrPosition = ''}) async {
+    return _datasource.getCurrentWeather(cityNameOrPosition: cityNameOrPosition);
   }
 }

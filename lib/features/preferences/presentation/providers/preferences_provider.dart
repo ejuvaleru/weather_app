@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:weather_app/config/config.dart';
 import 'package:weather_app/shared/shared.dart';
 
-final preferencesProvider =
-    StateNotifierProvider<PreferencesNotifier, PreferencesState>((ref) {
+const useCelciusCode = 'CELSIUS';
+const useKmCode = 'KM';
+const useDeviceLang = 'DEVICE_LANG';
+const hasLocationPermissionCode = 'LOCATION_PERMISSION';
+
+final preferencesProvider = StateNotifierProvider<PreferencesNotifier, PreferencesState>((ref) {
   final sharedService = SharedServiceImpl();
   return PreferencesNotifier(sharedService: sharedService);
 });
@@ -11,87 +15,86 @@ final preferencesProvider =
 class PreferencesNotifier extends StateNotifier<PreferencesState> {
   final SharedService sharedService;
 
-  PreferencesNotifier({required this.sharedService})
-      : super(PreferencesState()) {
+  PreferencesNotifier({required this.sharedService}): super(PreferencesState()) {
     _checkPreferencesStorage();
   }
 
   void _checkPreferencesStorage() async {
     state = state.copyWith(
-      useCelcius: await sharedService.getValue<bool>('CELCIUS') ?? true,
-      useKm: await sharedService.getValue<bool>('KM') ?? true,
-      useDeviceLang: await sharedService.getValue<bool>('DEVICE_LANG') ?? false,
+      useCelcius: await sharedService.getValue<bool>(useCelciusCode) ?? true,
+      useKm: await sharedService.getValue<bool>(useKmCode) ?? true,
+      useDeviceLang: await sharedService.getValue<bool>(useDeviceLang) ?? false,
+      hasLocationPermission: await sharedService.getValue<bool>(hasLocationPermissionCode) ?? false,
     );
   }
 
   void toggleCelcius() {
     state = state.copyWith(useCelcius: !state.useCelcius);
-    sharedService.setKeyValue('CELCIUS', state.isUsingCelcius);
+    sharedService.setKeyValue(useCelciusCode, state.isUsingCelcius);
   }
 
   void toggleKm() {
     state = state.copyWith(useKm: !state.useKm);
-    sharedService.setKeyValue('KM', state.isUsingKm);
+    sharedService.setKeyValue(useKmCode, state.isUsingKm);
   }
 
   void checkLocationPermissionStatus() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+    final hasPermission = await GeolocatorPlugin.hasLocationPermission();
     state = state.copyWith(
-      locationPermission: permission,
+      hasLocationPermission: hasPermission,
     );
+    sharedService.setKeyValue(hasLocationPermissionCode, state.isUsingKm);
   }
 
   void requestLocationPermission() async {
     if(state.isLocationPermissionGranted) {
-      await Geolocator.openAppSettings();
-      return;
+      return await GeolocatorPlugin.openAppSettings();
     }
-    LocationPermission permission = await Geolocator.requestPermission();
-    state = state.copyWith(locationPermission: permission);
-    _checkPermanentlyDenied(permission);
+    final hasLocationPermission = await GeolocatorPlugin.requestPermission();
+
+    state = state.copyWith(hasLocationPermission: hasLocationPermission);
+    sharedService.setKeyValue(hasLocationPermissionCode, state.isUsingKm);
   }
 
   void toggleUseDeviceLang() {
     state = state.copyWith(useDeviceLang: !state.useDeviceLang);
-    sharedService.setKeyValue('DEVICE_LANG', state.useDeviceLang);
+    sharedService.setKeyValue(useDeviceLang, state.useDeviceLang);
   }
 
-  _checkPermanentlyDenied(LocationPermission status) async {
-    if (status == LocationPermission.deniedForever) {
-      await Geolocator.openAppSettings();
-    }
-  }
+  // _checkPermanentlyDenied() async {
+  //   if(await GeolocatorPlugin.isPermanentlyDenied()) {
+  //     return GeolocatorPlugin.openAppSettings();
+  //   }
+  // }
 }
 
 class PreferencesState {
   final bool useCelcius;
   final bool useKm;
   final bool useDeviceLang;
-  final LocationPermission locationPermission;
+  final bool hasLocationPermission;
 
   PreferencesState({
     this.useCelcius = true,
     this.useKm = true,
     this.useDeviceLang = false,
-    this.locationPermission = LocationPermission.denied,
+    this.hasLocationPermission = false,
   });
 
   PreferencesState copyWith({
     bool? useCelcius,
     bool? useKm,
     bool? useDeviceLang,
-    LocationPermission? locationPermission,
+    bool? hasLocationPermission,
   }) =>
       PreferencesState(
           useCelcius: useCelcius ?? this.useCelcius,
           useKm: useKm ?? this.useKm,
           useDeviceLang: useDeviceLang ?? this.useDeviceLang,
-          locationPermission: locationPermission ?? this.locationPermission);
+          hasLocationPermission: hasLocationPermission ?? this.hasLocationPermission);
 
   bool get isUsingCelcius => useCelcius;
   bool get isUsingKm => useKm;
-  bool get isLocationPermissionGranted =>
-      locationPermission == LocationPermission.always ||
-      locationPermission == LocationPermission.whileInUse;
+  bool get isLocationPermissionGranted => hasLocationPermission;
   bool get isUsingDeviceLang => useDeviceLang;
 }

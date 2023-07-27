@@ -22,9 +22,10 @@ class WeatherApiDatasourceImpl implements WeatherDatasource {
   }
 
   @override
-  Future<CurrentWeather> getCurrentWeather({String cityName = 'Cancun'}) async {
+  Future<CurrentWeather> getCurrentWeather({required String cityNameOrPosition}) async {
     try {
-      final resp = await _dio.get('forecast.json', queryParameters: {'q': cityName});
+      print('-------------------- API CALLED $cityNameOrPosition');
+      final resp = await _dio.get('forecast.json', queryParameters: {'q': cityNameOrPosition});
       final weatherApiResponse = WeatherApiResponse.fromJson(resp.data);
 
       return CurrentWeatherMapper.currentToEntity(weatherApiResponse);

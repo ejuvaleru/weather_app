@@ -7,6 +7,7 @@ import 'package:weather_app/config/config.dart';
 import 'package:weather_app/features/forecast/domain/domain.dart';
 import 'package:weather_app/features/forecast/presentation/presentation.dart';
 import 'package:weather_app/features/preferences/preferences.dart';
+import 'package:weather_app/shared/shared.dart';
 
 class ForecastScreen extends ConsumerStatefulWidget {
   const ForecastScreen({super.key});
@@ -16,40 +17,39 @@ class ForecastScreen extends ConsumerStatefulWidget {
 }
 
 class ForecastScreenState extends ConsumerState<ForecastScreen> {
+
   @override
   Widget build(BuildContext context) {
-    final currentWeather = ref.watch(currentWeatherProvider).weather;
+    final currentWeatherAsync = ref.watch(currentWeatherProvider);
     final preferences = ref.watch(preferencesProvider);
-    final isLoading = ref.watch(currentWeatherProvider).isLoading;
 
-    return Scaffold(
+    return currentWeatherAsync.when(
+      data: (currentWeather) => Scaffold(
         body: SafeArea(
-      top: false,
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator.adaptive())
-          : RefreshIndicator.adaptive(
-              onRefresh: () async {
-                Future.delayed(
-                  const Duration(milliseconds: 100),
-                  () {
-                    ref.invalidate(currentWeatherProvider);
-                  },
-                );
-              },
-              child: CustomScrollView(
-                slivers: [
-                  _CustomSliverAppBar(
-                    currentWeather: currentWeather!,
-                    preferences: preferences,
-                  ),
-                  _CustomSliverView(
-                    currentWeather: currentWeather,
-                    preferences: preferences,
-                  ),
-                ],
-              ),
+          top: false,
+          child: RefreshIndicator.adaptive(
+            onRefresh: () async {
+              ref.invalidate(currentWeatherProvider);
+              ref.read(currentWeatherProvider);
+            },
+            child: CustomScrollView(
+              slivers: [
+                _CustomSliverAppBar(
+                  currentWeather: currentWeather,
+                  preferences: preferences,
+                ),
+                _CustomSliverView(
+                  currentWeather: currentWeather,
+                  preferences: preferences,
+                ),
+              ],
             ),
-    ));
+          ),
+        ),
+      ),
+      loading: () => const LoadingScreen(),
+      error: (error, stackTrace) => Center(child: Text('ERROR $error')),
+    );
   }
 }
 
