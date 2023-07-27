@@ -30,6 +30,7 @@ class ForecastScreenState extends ConsumerState<ForecastScreen> {
           child: RefreshIndicator.adaptive(
             onRefresh: () async {
               ref.invalidate(currentWeatherProvider);
+              Future.delayed(const Duration(milliseconds: 500));
               ref.read(currentWeatherProvider);
             },
             child: CustomScrollView(
@@ -117,8 +118,7 @@ class _HourlyForecastListState extends State<_HourlyForecastList> {
   void initState() {
     super.initState();
     _hourlyForecastScrollController = ScrollController(
-      initialScrollOffset:
-          getInitialOffsetHourlyList(widget.currentWeather.lastUpdateHour),
+      initialScrollOffset: getInitialOffsetHourlyList(widget.currentWeather.lastUpdateHour),
     );
   }
 
